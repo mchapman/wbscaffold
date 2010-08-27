@@ -1,0 +1,330 @@
+== wbscaffold
+
+This is what you get when you do: scaffold users name:string dob:datetime
+
+      invoke  active_record
+      create    db/migrate/20100825124153_create_users.rb
+        class CreateUsers < ActiveRecord::Migration
+          def self.up
+            create_table :users do |t|
+              t.string :name
+              t.datetime :dob
+
+              t.timestamps
+            end
+          end
+
+          def self.down
+            drop_table :users
+          end
+        end
+      create    app/models/user.rb
+        class User < ActiveRecord::Base
+        end
+      invoke    test_unit
+      create      test/unit/user_test.rb
+        require 'test_helper'
+
+        class UserTest < ActiveSupport::TestCase
+          # Replace this with your real tests.
+          test "the truth" do
+            assert true
+          end
+        end
+      create      test/fixtures/users.yml
+        one:
+          name: MyString
+          dob: 2010-08-25 08:41:53
+
+        two:
+          name: MyString
+          dob: 2010-08-25 08:41:53
+       route  resources :users
+        resources :users
+      invoke  scaffold_controller
+      create    app/controllers/users_controller.rb
+        class UsersController < ApplicationController
+          # GET /users
+          # GET /users.xml
+          def index
+            @users = User.all
+
+            respond_to do |format|
+              format.html # index.html.erb
+              format.xml  { render :xml => @users }
+            end
+          end
+
+          # GET /users/1
+          # GET /users/1.xml
+          def show
+            @user = User.find(params[:id])
+
+            respond_to do |format|
+              format.html # show.html.erb
+              format.xml  { render :xml => @user }
+            end
+          end
+
+          # GET /users/new
+          # GET /users/new.xml
+          def new
+            @user = User.new
+
+            respond_to do |format|
+              format.html # new.html.erb
+              format.xml  { render :xml => @user }
+            end
+          end
+
+          # GET /users/1/edit
+          def edit
+            @user = User.find(params[:id])
+          end
+
+          # POST /users
+          # POST /users.xml
+          def create
+            @user = User.new(params[:user])
+
+            respond_to do |format|
+              if @user.save
+                format.html { redirect_to(@user, :notice => 'User was successfully created.') }
+                format.xml  { render :xml => @user, :status => :created, :location => @user }
+              else
+                format.html { render :action => "new" }
+                format.xml  { render :xml => @user.errors, :status => :unprocessable_entity }
+              end
+            end
+          end
+
+          # PUT /users/1
+          # PUT /users/1.xml
+          def update
+            @user = User.find(params[:id])
+
+            respond_to do |format|
+              if @user.update_attributes(params[:user])
+                format.html { redirect_to(@user, :notice => 'User was successfully updated.') }
+                format.xml  { head :ok }
+              else
+                format.html { render :action => "edit" }
+                format.xml  { render :xml => @user.errors, :status => :unprocessable_entity }
+              end
+            end
+          end
+
+          # DELETE /users/1
+          # DELETE /users/1.xml
+          def destroy
+            @user = User.find(params[:id])
+            @user.destroy
+
+            respond_to do |format|
+              format.html { redirect_to(users_url) }
+              format.xml  { head :ok }
+            end
+          end
+        end
+      invoke    erb
+      create      app/views/users
+      create      app/views/users/index.html.erb
+        <h1>Listing users</h1>
+
+        <table>
+          <tr>
+            <th>Name</th>
+            <th>Dob</th>
+            <th></th>
+            <th></th>
+            <th></th>
+          </tr>
+
+        <% @users.each do |user| %>
+          <tr>
+            <td><%= user.name %></td>
+            <td><%= user.dob %></td>
+            <td><%= link_to 'Show', user %></td>
+            <td><%= link_to 'Edit', edit_user_path(user) %></td>
+            <td><%= link_to 'Destroy', user, :confirm => 'Are you sure?', :method => :delete %></td>
+          </tr>
+        <% end %>
+        </table>
+
+        <br />
+
+        <%= link_to 'New User', new_user_path %>
+      create      app/views/users/edit.html.erb
+        <h1>Editing user</h1>
+
+        <%= render 'form' %>
+
+        <%= link_to 'Show', @user %> |
+        <%= link_to 'Back', users_path %>
+      create      app/views/users/show.html.erb
+        <p id="notice"><%= notice %></p>
+
+        <p>
+          <b>Name:</b>
+          <%= @user.name %>
+        </p>
+
+        <p>
+          <b>Dob:</b>
+          <%= @user.dob %>
+        </p>
+
+
+        <%= link_to 'Edit', edit_user_path(@user) %> |
+        <%= link_to 'Back', users_path %>
+      create      app/views/users/new.html.erb
+        <h1>New user</h1>
+
+        <%= render 'form' %>
+
+        <%= link_to 'Back', users_path %>
+      create      app/views/users/_form.html.erb
+        <%= form_for(@user) do |f| %>
+          <% if @user.errors.any? %>
+            <div id="error_explanation">
+              <h2><%= pluralize(@user.errors.count, "error") %> prohibited this user from being saved:</h2>
+
+              <ul>
+              <% @user.errors.full_messages.each do |msg| %>
+                <li><%= msg %></li>
+              <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <div class="field">
+            <%= f.label :name %><br />
+            <%= f.text_field :name %>
+          </div>
+          <div class="field">
+            <%= f.label :dob %><br />
+            <%= f.datetime_select :dob %>
+          </div>
+          <div class="actions">
+            <%= f.submit %>
+          </div>
+        <% end %>
+      invoke    test_unit
+      create      test/functional/users_controller_test.rb
+        require 'test_helper'
+
+        class UsersControllerTest < ActionController::TestCase
+          setup do
+            @user = users(:one)
+          end
+
+          test "should get index" do
+            get :index
+            assert_response :success
+            assert_not_nil assigns(:users)
+          end
+
+          test "should get new" do
+            get :new
+            assert_response :success
+          end
+
+          test "should create user" do
+            assert_difference('User.count') do
+              post :create, :user => @user.attributes
+            end
+
+            assert_redirected_to user_path(assigns(:user))
+          end
+
+          test "should show user" do
+            get :show, :id => @user.to_param
+            assert_response :success
+          end
+
+          test "should get edit" do
+            get :edit, :id => @user.to_param
+            assert_response :success
+          end
+
+          test "should update user" do
+            put :update, :id => @user.to_param, :user => @user.attributes
+            assert_redirected_to user_path(assigns(:user))
+          end
+
+          test "should destroy user" do
+            assert_difference('User.count', -1) do
+              delete :destroy, :id => @user.to_param
+            end
+
+            assert_redirected_to users_path
+          end
+        end
+      invoke    helper
+      create      app/helpers/users_helper.rb
+        module UsersHelper
+        end
+      invoke      test_unit
+      create        test/unit/helpers/users_helper_test.rb
+        require 'test_helper'
+
+        class UsersHelperTest < ActionView::TestCase
+        end
+      invoke  stylesheets
+      create    public/stylesheets/scaffold.css
+        body { background-color: #fff; color: #333; }
+
+        body, p, ol, ul, td {
+          font-family: verdana, arial, helvetica, sans-serif;
+          font-size:   13px;
+          line-height: 18px;
+        }
+
+        pre {
+          background-color: #eee;
+          padding: 10px;
+          font-size: 11px;
+        }
+
+        a { color: #000; }
+        a:visited { color: #666; }
+        a:hover { color: #fff; background-color:#000; }
+
+        div.field, div.actions {
+          margin-bottom: 10px;
+        }
+
+        #notice {
+          color: green;
+        }
+
+        .field_with_errors {
+          padding: 2px;
+          background-color: red;
+          display: table;
+        }
+
+        #error_explanation {
+          width: 450px;
+          border: 2px solid red;
+          padding: 7px;
+          padding-bottom: 0;
+          margin-bottom: 20px;
+          background-color: #f0f0f0;
+        }
+
+        #error_explanation h2 {
+          text-align: left;
+          font-weight: bold;
+          padding: 5px 5px 5px 15px;
+          font-size: 12px;
+          margin: -7px;
+          margin-bottom: 0px;
+          background-color: #c00;
+          color: #fff;
+        }
+
+        #error_explanation ul li {
+          font-size: 12px;
+          list-style: square;
+        }
