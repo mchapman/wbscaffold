@@ -43,3 +43,18 @@ end
 Rake::TestTask.new do |t|
   t.test_files = FileList['test/**/*.rb']
 end
+
+begin
+  require 'jeweler'
+  Jeweler::Tasks.new do |gemspec|
+    gemspec.name = "wbscaffold"
+    gemspec.summary = "Use MySQL Workbench to create enhanced Rails scaffold"
+    gemspec.description = "Use MySQL Workbench to create enhanced Rails scaffold"
+    gemspec.email = "mark.chapman@gmail.com"
+    gemspec.homepage = "http://github.com/mchapman/wbscaffold"
+    gemspec.authors = ["Mark Chapman"]
+  end
+rescue LoadError
+  puts "Jeweler not available. Install it with: gem install jeweler"
+end
+

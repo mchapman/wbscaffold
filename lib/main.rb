@@ -1,11 +1,9 @@
 require 'active_support/inflector'
-
 class RailsField
   attr_reader :name, :mysql_type, :length, :precision, :scale, :is_not_null
 
   def initialize(field_string)
     @name, @mysql_type, @length, @precision, @scale, @is_not_null = field_string.split(/\s*\,\s*/)
-#    @name = @name.singularize
     if @mysql_type[0..6]=='VARCHAR'
       @mysql_type = 'VARCHAR'
     end
@@ -27,11 +25,15 @@ class RailsField
     return rails_type
   end
 
+  def rails_input
+    return @name != 'id' && @name[-3..-1] != '_id'
+  end
+
   def scaffold_instruction
-    if @name == 'id' or @name[-3..-1] == '_id'
-      result = ""
-    else
+    if rails_input
       result = "#{name}:#{rails_field_type} "
+    else
+      result = ""
     end
     return result
   end
@@ -44,20 +46,16 @@ class RailsField
     result = result + ", :scale => #{scale}" if @scale != "-1"
     return result
   end
-
 end
-
 class RailsKey
   attr_reader :singular_name, :plural_name, :many, :mandatory
 
   def initialize(key_string)
-    name, @many, @mandatory = key_string.split(/\s*\,\s*/)[0]
+    name, @many, @mandatory = key_string.split(/\s*\,\s*/)
     @singular_name = name.singularize
     @plural_name = @singular_name.pluralize
   end
-
 end
-
 class RailsModel
   attr_reader :singular_name, :plural_name, :fields, :keys
 
@@ -111,9 +109,15 @@ class RailsModel
   def complete_migration_file(railsbase)
     f = File.new("#{railsbase}/db/migrate/#{get_migration_name_in_folder(railsbase)}",'r+')
     fa = f.readlines
+    new_array = modify_migration_file_array(fa)
     f.rewind
+    new_array.each {|line| f.puts(line)}
+  end
+
+  def modify_migration_file_array(mfa)
+    new_array = []
     section = 0    # 0=before fields, 1=in fields section, 2=after fields
-    fa.each do |line|
+    mfa.each do |line|
       if (section < 2)
         if line =~ /t.[\w]* :([\w_]*)$/   # extract the field name, only if it is last thing on the line
           section = 1
@@ -129,49 +133,58 @@ class RailsModel
               # The workbench diagram was not properly "rails-ified"
               # Just create an integer field, and warn if the plural equivalent isn't found
               puts "Warning: Would have expected to find field #{field_name} in #{plural_name} table" if find_field("#{key.plural_name}_id").nil?
-              f.puts("      t.integer :#{field_name}")
+              new_array << "      t.integer :#{field_name}"
             else
               insert_line = "      t.#{field.rails_field_type} :#{field_name}"
-              f.puts(field.migration_line(insert_line))
+              new_array << field.migration_line(insert_line)
             end
           end
         end
       end
-      f.puts(line)
+      new_array << line
     end
+    return new_array
   end
 
-  # Add validation, belongs to, etc to models
-  def update_model(wbs)
-    f = File.new("#{wbs.railsbase}/app/models/#{singular_name}.rb",'r+')
-    fa = f.readlines
-    f.rewind
-    f.puts(fa[0])
-
-    # handle validation for not nulls
+  def validation_line
     validates = ""
-    fields.each {|field| validates = "#{validates} :#{field.name}," if field.is_not_null == 1 }
-    f.puts("  validates #{validates} :presence => true") if validates != ""
+    fields.each {|field| validates = "#{validates} :#{field.name}," if field.is_not_null == "1" && field.rails_input == true}
+    validates = "  validates#{validates} :presence => true" if validates != ""
+    return validates
+  end
+
+  def prepare_model_changes(original, wbs)
+    new_array = []
+    new_array << original[0]
+    new_array << validation_line unless validation_line == ""
 
     # handle belongs_to
-    keys.each {|key| f.puts("  belongs_to :#{key.singular_name}")}
+    keys.each {|key| new_array << "  belongs_to :#{key.singular_name}"}
 
     # handle has_one and has_many
     wbs.models.each do |model|
       key = model.find_key(singular_name)
       if not key.nil?
         if key.many
-          f.puts("  has_many :#{key.plural_name}")
+          new_array << "  has_many :#{key.plural_name}      ##{model.singular_name}"
         else
-          f.puts("  has_one :#{key.singular_name}")
+          new_array << "  has_one :#{key.singular_name}      ##{model.singular_name}"
         end
       end
     end
-    f.puts(fa[1])
+    new_array << original[1]
+  end
+
+  # Add validation, belongs to, etc to models
+  def update_model(wbs)
+    f = File.new("#{wbs.railsbase}/app/models/#{singular_name}.rb",'r+')
+    fa = f.readlines
+    new_array = prepare_model_changes(fa, wbs)
+    f.rewind
+    new_array.each {|line| f.puts(line)}
   end
 
 end
-
 class Wbscaffold
 
   attr_reader :models, :railsbase
@@ -231,18 +244,22 @@ class Wbscaffold
   
   def find(model_name)
     result = nil
-    models.each {|model| result = model if model.name == model_name }
+    models.each {|model| result = model if model.singular_name == model_name || model.plural_name == model_name }
     return result
   end
-
 end
 
 if __FILE__ == $0
-  wbs = Wbscaffold.new('/home/mark/Documents/Structure.exp', '/home/mark/Projects/TestScaff', ARGV)
-#  wbs = Wbscaffold.new('/home/mark/Documents/Structure.exp', '/home/mark/Projects/TestScaff', ["-nocheck"])
-  wbs.parse_input_file
-  wbs.create_rails_app
-#  model = wbs.find('organisation_addresses')
+#  wbs = Wbscaffold.new('/home/mark/Documents/Structure.exp', '/home/mark/Projects/TestScaff', ARGV)
+#  wbs.parse_input_file
+#  wbs.create_rails_app
+
+#  wbs = Wbscaffold.new('/home/mark/Documents/Structure.exp', '/home/mark/Projects/reallycare', ["-nocheck"])
+#  wbs.parse_input_file
+#  model = wbs.find('organisation')
 #  model.update_model(wbs)
+
+#model = RailsModel.new("organisations:id,INT,-1,-1,-1,1#name,VARCHAR(45),45,-1,-1,1:")
+#puts model.validation_line
 end
 
