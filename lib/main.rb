@@ -165,7 +165,7 @@ class RailsModel
     wbs.models.each do |model|
       key = model.find_key(singular_name)
       if not key.nil?
-        if key.many
+        if key.many == "1"
           new_array << "  has_many :#{model.plural_name}"
         else
           new_array << "  has_one :#{model.singular_name}"
@@ -250,16 +250,8 @@ class Wbscaffold
 end
 
 if __FILE__ == $0
-  wbs = Wbscaffold.new('/home/mark/Documents/Structure.exp', '/home/mark/Projects/bigcare', ARGV)
+  wbs = Wbscaffold.new('/home/mark/Documents/Structure.exp', '/home/mark/Projects/proj', ARGV)
   wbs.parse_input_file
   wbs.create_rails_app
-
-#  wbs = Wbscaffold.new('/home/mark/Documents/Structure.exp', '/home/mark/Projects/reallycare', ["-nocheck"])
-#  wbs.parse_input_file
-#  model = wbs.find('organisation')
-#  model.update_model(wbs)
-
-#model = RailsModel.new("organisations:id,INT,-1,-1,-1,1#name,VARCHAR(45),45,-1,-1,1:")
-#puts model.validation_line
 end
 
