@@ -166,9 +166,9 @@ class RailsModel
       key = model.find_key(singular_name)
       if not key.nil?
         if key.many
-          new_array << "  has_many :#{key.plural_name}      ##{model.singular_name}"
+          new_array << "  has_many :#{model.plural_name}"
         else
-          new_array << "  has_one :#{key.singular_name}      ##{model.singular_name}"
+          new_array << "  has_one :#{model.singular_name}"
         end
       end
     end
@@ -230,7 +230,7 @@ class Wbscaffold
       rails_folder = @railsbase
     end
     Dir.chdir(project_folder) do
-      system("rails new #{rails_folder} -d mysql")   # Tried to find a way of using ` to capture the output but gave up
+      system("rails new #{rails_folder} -d mysql -T")   # Tried to find a way of using ` to capture the output but gave up
       Dir.chdir(rails_folder) do
         models.each do |model|
           puts "Processing #{model.plural_name}"
@@ -250,9 +250,9 @@ class Wbscaffold
 end
 
 if __FILE__ == $0
-#  wbs = Wbscaffold.new('/home/mark/Documents/Structure.exp', '/home/mark/Projects/TestScaff', ARGV)
-#  wbs.parse_input_file
-#  wbs.create_rails_app
+  wbs = Wbscaffold.new('/home/mark/Documents/Structure.exp', '/home/mark/Projects/bigcare', ARGV)
+  wbs.parse_input_file
+  wbs.create_rails_app
 
 #  wbs = Wbscaffold.new('/home/mark/Documents/Structure.exp', '/home/mark/Projects/reallycare', ["-nocheck"])
 #  wbs.parse_input_file
