@@ -230,7 +230,7 @@ class Wbscaffold
       rails_folder = @railsbase
     end
     Dir.chdir(project_folder) do
-      system("rails new #{rails_folder} -d mysql -T")   # Tried to find a way of using ` to capture the output but gave up
+      system("rails new #{rails_folder} -d mysql")   # Tried to find a way of using ` to capture the output but gave up
       Dir.chdir(rails_folder) do
         models.each do |model|
           puts "Processing #{model.plural_name}"
