@@ -130,6 +130,7 @@ describe Wbscaffold,"has..." do
     wbs.models << RailsModel.new("line_item:id,INT,-1,-1,-1,1#quantity,INT(11),-1,-1,-1,1#orders_id,INT,-1,-1,-1,1#products_id,INT,-1,-1,-1,1#carts_id,INT,-1,-1,-1,1:orders,1,1#products,1,1#carts,1,1")
     wbs.models << RailsModel.new("products:id,INT,-1,-1,-1,1#title,VARCHAR(45),45,-1,-1,1#description,TEXT,-1,-1,-1,0#image_url,VARCHAR(45),45,-1,-1,0#price,FLOAT,-1,-1,-1,0:")
     wbs.models << RailsModel.new("orders:id,INT,-1,-1,-1,1#name,VARCHAR(45),45,-1,-1,1#address,VARCHAR(45),45,-1,-1,1#email,VARCHAR(45),45,-1,-1,1#pay_type,VARCHAR(45),45,-1,-1,1:")
+    wbs.models << RailsModel.new("testobjects:id,INT,-1,-1,-1,1#description,VARCHAR(11),11,-1,-1,1:orders,0,1")
     array = ["class Order < ActiveRecord::Base","end"]
     @new_array = wbs.find('order').prepare_model_changes(array, wbs)
   end
@@ -138,5 +139,8 @@ describe Wbscaffold,"has..." do
   end
   it "handles has_many" do
     @new_array[2].should == "  has_many :line_items"
+  end
+  it "handles has_one" do
+    @new_array[3].should == "  has_one :testobject"
   end
 end
