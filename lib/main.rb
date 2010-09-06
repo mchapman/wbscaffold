@@ -10,19 +10,18 @@ class RailsField
   end
 
   def rails_field_type
-    case @mysql_type
+    return case @mysql_type
     when "FLOAT","DATE","TEXT","DATETIME"
-       rails_type = @mysql_type.downcase
+      @mysql_type.downcase
     when "INT"
-        rails_type = 'integer'
+      'integer'
     when "VARCHAR"
-      rails_type = 'string'
+      'string'
     when "BIT"
-      rails_type = 'boolean'
+      'boolean'
     else
       raise "Unsupported data type #{@mysql_type}"
     end
-    return rails_type
   end
 
   def rails_input
@@ -40,10 +39,10 @@ class RailsField
 
   def migration_line(rails_scaffold_line)
     result = rails_scaffold_line
-    result = result + ", :null => false" if is_not_null == "1"
-    result = result + ", :limit => #{@length}" if @mysql_type == 'VARCHAR'
-    result = result + ", :precision => #{precision}" if @precision != "-1"
-    result = result + ", :scale => #{scale}" if @scale != "-1"
+    result += ", :null => false" if is_not_null == "1"
+    result += ", :limit => #{@length}" if @mysql_type == 'VARCHAR'
+    result += ", :precision => #{precision}" if @precision != "-1"
+    result += ", :scale => #{scale}" if @scale != "-1"
     return result
   end
 end
@@ -203,7 +202,7 @@ class Wbscaffold
         nocheck = true
       end
     end
-    if @input.nil? or @railsbase.nil? then
+    unless @input and @railsbase
       raise "Must specify input file and rails base folder"
     end
     if nocheck == false
