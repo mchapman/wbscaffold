@@ -11,9 +11,11 @@ class RailsField
 
   def rails_field_type
     return case @mysql_type
-    when "FLOAT","DATE","TEXT","DATETIME"
+    when "FLOAT","DATE","TEXT","DATETIME","TIME"
       @mysql_type.downcase
-    when "INT"
+    when /DECIMAL/
+      'decimal'
+    when "INT","TINYINT"
       'integer'
     when "VARCHAR"
       'string'
@@ -249,7 +251,7 @@ class Wbscaffold
 end
 
 if __FILE__ == $0
-  wbs = Wbscaffold.new('/home/mark/Documents/Structure.exp', '/home/mark/Projects/proj', ARGV)
+  wbs = Wbscaffold.new('/home/mark/Documents/Structure2.exp', '/home/mark/Projects/bc', ARGV)
   wbs.parse_input_file
   wbs.create_rails_app
 end
